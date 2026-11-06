@@ -1,55 +1,15 @@
 {{>navbar}}
-
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{siteUrl}}/"},
-      {"@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "{{siteUrl}}/privacy"}
-    ]
-  }
-</script>
-
-<main class="flex flex-col items-center py-16 px-4">
-  <div class="max-w-2xl w-full prose">
-    <h1 class="text-3xl font-bold mb-8">{{t 'lang.PRIVACY_HEADING'}}</h1>
-
-    <p class="mb-6">{{t 'lang.PRIVACY_INTRO'}}</p>
-
-    {{!-- Public Cloud Instance --}}
-    <h2 class="text-2xl font-bold mt-12 mb-6">{{t 'lang.PRIVACY_PUBLIC_HEADING'}}</h2>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_PUBLIC_DATA_COLLECTED'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_PUBLIC_DATA_ITEMS'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_PUBLIC_DATA_STORAGE'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_PUBLIC_DATA_STORAGE_DESC'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_PUBLIC_THIRD_PARTY'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_PUBLIC_THIRD_PARTY_DESC'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_PUBLIC_RIGHTS'}}</h3>
-    <p class="mb-6">{{t 'lang.PRIVACY_PUBLIC_RIGHTS_DESC'}}</p>
-
-    {{!-- Self-Hosted Instances --}}
-    <h2 class="text-2xl font-bold mt-12 mb-6">{{t 'lang.PRIVACY_SELF_HOSTED_HEADING'}}</h2>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_SELF_HOSTED_DATA_COLLECTED'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_SELF_HOSTED_DATA_ITEMS'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_SELF_HOSTED_DATA_STORAGE'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_SELF_HOSTED_DATA_STORAGE_DESC'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_SELF_HOSTED_THIRD_PARTY'}}</h3>
-    <p class="mb-4">{{t 'lang.PRIVACY_SELF_HOSTED_THIRD_PARTY_DESC'}}</p>
-
-    <h3 class="text-lg font-semibold mt-6 mb-2">{{t 'lang.PRIVACY_SELF_HOSTED_RIGHTS'}}</h3>
-    <p class="mb-6">{{t 'lang.PRIVACY_SELF_HOSTED_RIGHTS_DESC'}}</p>
-
-    <h2 class="text-xl font-semibold mt-12 mb-3">{{t 'lang.PRIVACY_CONTACT'}}</h2>
-    <p class="mb-6">{{t 'lang.PRIVACY_CONTACT_DESC'}}</p>
-  </div>
+<main class="p-4 pt-20 pb-24 max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">隐私说明</h1>
+  <p class="mb-4">
+    本衣橱关闭了注册和登录。知道网址的人可以查看照片、衣物和穿搭，也可以修改或删除记录。请只在两人之间使用。
+  </p>
+  <p class="mb-4">
+    衣物信息、照片、洗涤状态和穿搭保存在部署服务器的数据库与文件目录。两台手机通过该服务器同步，刷新后可查看最新数据。
+  </p>
+  <p class="mb-4">
+    照片去背景在浏览器内运行。日历天气功能仅在你授权位置后使用；不授权也可以安排穿搭。
+  </p>
+  <p>持久存储不能代替备份。请定期将数据库和照片备份到服务器之外。</p>
 </main>
-
 {{>dock}}

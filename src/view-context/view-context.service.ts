@@ -19,13 +19,14 @@ export class ViewContextService {
   ) {}
 
   async buildContext(req: FastifyRequest) {
-    const locale = I18nContext.current()?.lang ?? 'en';
+    const locale = I18nContext.current()?.lang ?? 'zh';
     const path = req.url.split('?')[0];
     const protocol =
       (req.headers['x-forwarded-proto'] as string) ?? req.protocol;
     const host = (req.headers['x-forwarded-host'] as string) ?? req.hostname;
     const canonicalUrl = `${protocol}://${host}${path}`;
     const ogLocaleMap: Record<string, string> = {
+      zh: 'zh_CN',
       en: 'en_US',
       ru: 'ru_RU',
       es: 'es_ES',
@@ -38,8 +39,7 @@ export class ViewContextService {
     const siteUrl = this.configService.get<string>('SITE_URL') ?? host;
     const baseUrl = `${protocol}://${host}`;
     const appName = this.configService.get<string>('APP_NAME');
-    const appDescription =
-      'Self-hosted wardrobe organizer. Catalog clothes with photos, build outfits, and install as an offline PWA. Free and open-source. No subscription, no ads.';
+    const appDescription = '两个人的共享衣橱：记录衣服、洗涤状态和每天的穿搭。';
     const ogImage = `${baseUrl}/assets/lazztech_icon.png`;
 
     const context: Record<string, any> = {

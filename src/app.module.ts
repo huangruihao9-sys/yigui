@@ -71,11 +71,11 @@ import { ViewContextModule } from './view-context/view-context.module';
           .valid('development', 'production', 'test')
           .default('production'),
         PORT: Joi.number().default(3000),
-        APP_NAME: Joi.string().default('Boilerplate'),
+        APP_NAME: Joi.string().default('双人衣橱'),
         AUTH_ENABLED: Joi.boolean().default(false),
         DISABLE_REGISTRATION: Joi.boolean().default(false),
         PWA_ENABLED: Joi.boolean().default(false),
-        SUPPORTER_PROMPT_ENABLED: Joi.boolean().default(true),
+        SUPPORTER_PROMPT_ENABLED: Joi.boolean().default(false),
         ACCESS_TOKEN_SECRET: Joi.string().default('ChangeMe!'),
         PUBLIC_VAPID_KEY: Joi.optional().default(
           'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U',
@@ -167,8 +167,8 @@ import { ViewContextModule } from './view-context/view-context.module';
       isGlobal: true,
     }),
     I18nModule.forRoot({
-      fallbackLanguage: 'en',
-      resolvers: [AcceptLanguageResolver],
+      fallbackLanguage: 'zh',
+      resolvers: [],
       loaderOptions: {
         path: path.join(__dirname, '/i18n/'),
         watch: process.env.NODE_ENV !== 'production',

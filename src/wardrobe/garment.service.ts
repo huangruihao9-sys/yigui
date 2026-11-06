@@ -12,6 +12,7 @@ import { Garment } from '../dal/entity/garment.entity';
 import { File } from '../dal/entity/file.entity';
 import { User } from '../dal/entity/user.entity';
 import { FileService } from '../file/file-service.abstract';
+import { validateGarmentDetails, validatePerson } from './shared-wardrobe';
 import { MultipartFile } from '@fastify/multipart';
 import { CreateGarmentDto } from './dto/create-garment.dto';
 import { UpdateGarmentDto } from './dto/update-garment.dto';
@@ -59,7 +60,11 @@ export class GarmentService {
     viewOwner?: number,
   ): Promise<Garment[]> {
     const normalizedSize = this.normalizeSize(dto.size);
+    validateGarmentDetails({ laundryStatus: dto.laundryStatus || undefined });
+    if (dto.wearer) validatePerson(dto.wearer);
     const searchConditions: FilterQuery<Garment> = {
+      ...(dto.laundryStatus ? { laundryStatus: dto.laundryStatus } : {}),
+      ...(dto.wearer ? { wearableBy: { $in: [dto.wearer, 'both'] } } : {}),
       ...(dto.category ? { category: dto.category } : {}),
       ...(dto.color ? { color: dto.color } : {}),
       ...(normalizedSize ? { size: normalizedSize } : {}),
@@ -102,7 +107,7 @@ export class GarmentService {
     const garment = await this.garmentRepository.findOne(id, {
       populate: ['photo', 'outfits'],
     });
-    if (!garment) throw new NotFoundException('Garment not found');
+    if (!garment) throw new NotFoundException('找不到这件衣物');
     if (userId != null) {
       if (garment.owner?.id === userId) return garment;
       if (viewOwner != null && garment.owner?.id === viewOwner) {
@@ -122,11 +127,12 @@ export class GarmentService {
       { shareableId },
       { populate: ['photo'] },
     );
-    if (!garment) throw new NotFoundException('Garment not found');
+    if (!garment) throw new NotFoundException('找不到这件衣物');
     return garment;
   }
 
   async create(dto: CreateGarmentDto, userId?: number): Promise<Garment> {
+    validateGarmentDetails(dto);
     let photo: File | undefined = undefined;
     if (dto.files) {
       for await (const file of dto.files) {
@@ -146,6 +152,9 @@ export class GarmentService {
       size: this.normalizeSize(dto.size),
       notes: dto.notes,
       washingDetails: dto.washingDetails,
+      laundryStatus: dto.laundryStatus ?? 'clean',
+      primaryOwner: dto.primaryOwner ?? 'both',
+      wearableBy: dto.wearableBy ?? 'both',
       dateAquired: dto.dateAquired ? new Date(dto.dateAquired) : undefined,
       photo: photo ?? undefined,
     });
@@ -162,6 +171,9 @@ export class GarmentService {
   async clone(
     sourceId: number,
     dto: {
+      laundryStatus?: string;
+      primaryOwner?: string;
+      wearableBy?: string;
       name?: string;
       category: string;
       brand?: string;
@@ -171,10 +183,11 @@ export class GarmentService {
     },
     userId?: number,
   ): Promise<Garment> {
+    validateGarmentDetails(dto);
     const source = await this.garmentRepository.findOne(sourceId, {
       populate: ['photo'],
     });
-    if (!source) throw new NotFoundException('Garment not found');
+    if (!source) throw new NotFoundException('找不到这件衣物');
 
     let photo: File | undefined;
     if (source.photo?.fileName) {
@@ -202,6 +215,9 @@ export class GarmentService {
       size: this.normalizeSize(dto.size),
       notes: dto.notes,
       photo: photo ?? undefined,
+      laundryStatus: dto.laundryStatus ?? 'clean',
+      primaryOwner: dto.primaryOwner ?? source.primaryOwner,
+      wearableBy: dto.wearableBy ?? source.wearableBy,
     });
 
     if (userId != null) {
@@ -249,6 +265,7 @@ export class GarmentService {
     userId?: number,
     requestingUserId?: number,
   ): Promise<Garment> {
+    validateGarmentDetails(dto);
     let photo: File | undefined;
     if (dto.files) {
       // Process file uploads BEFORE any async DB operations.
@@ -296,6 +313,10 @@ export class GarmentService {
       garment.photo = photo as any;
     }
 
+    if (dto.laundryStatus !== undefined)
+      garment.laundryStatus = dto.laundryStatus;
+    if (dto.primaryOwner !== undefined) garment.primaryOwner = dto.primaryOwner;
+    if (dto.wearableBy !== undefined) garment.wearableBy = dto.wearableBy;
     garment.name = dto.name ?? garment.name;
     garment.category = dto.category ?? garment.category;
     if ('brand' in dto) garment.brand = dto.brand;

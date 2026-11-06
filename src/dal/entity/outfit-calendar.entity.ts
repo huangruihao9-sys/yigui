@@ -32,6 +32,12 @@ export class OutfitCalendar {
   })
   public owner?: Ref<User>;
 
+  @Property({ default: 'me' })
+  public wearer = 'me';
+
+  @Property({ default: 'me' })
+  public plannedBy = 'me';
+
   /**
    * Null until the user marks this entry as worn.
    * Set to the actual wear date (may differ from `date` if rescheduled).

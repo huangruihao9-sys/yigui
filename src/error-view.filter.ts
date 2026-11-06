@@ -35,7 +35,7 @@ export class ErrorViewFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.getResponse()
-        : 'Internal server error';
+        : '服务器暂时出现问题，请稍后重试';
 
     try {
       const context =

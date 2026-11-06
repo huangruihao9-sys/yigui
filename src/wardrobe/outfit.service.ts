@@ -1,12 +1,15 @@
 import { EntityRepository, wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
+  BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { I18nContext } from 'nestjs-i18n';
+import { OutfitCalendar } from '../dal/entity/outfit-calendar.entity';
 import { Garment } from '../dal/entity/garment.entity';
 import { Outfit, OutfitSlot } from '../dal/entity/outfit.entity';
 import { User } from '../dal/entity/user.entity';
@@ -46,7 +49,7 @@ export class OutfitService {
     const outfit = await this.outfitRepository.findOne(id, {
       populate: ['garments', 'garments.photo'],
     });
-    if (!outfit) throw new NotFoundException('Outfit not found');
+    if (!outfit) throw new NotFoundException('找不到这套搭配');
     if (userId != null) {
       // auth mode: must be the owner
       if (outfit.owner?.id !== userId) throw new ForbiddenException();
@@ -62,7 +65,7 @@ export class OutfitService {
       { shareableId },
       { populate: ['garments', 'garments.photo'] },
     );
-    if (!outfit) throw new NotFoundException('Outfit not found');
+    if (!outfit) throw new NotFoundException('找不到这套搭配');
     return outfit;
   }
 
@@ -81,7 +84,14 @@ export class OutfitService {
     if (garmentIds.length) {
       const garments = await this.garmentRepository.find({
         id: { $in: garmentIds },
+        owner: userId != null ? { id: userId } : null,
       });
+      if (
+        garments.length !== new Set(garmentIds).size ||
+        garmentIds.some((id) => !Number.isSafeInteger(id) || id <= 0)
+      ) {
+        throw new BadRequestException('部分衣物不存在或不可使用，请重新选择');
+      }
       outfit.garments.set(garments);
     }
 
@@ -99,26 +109,61 @@ export class OutfitService {
     dto: UpdateOutfitDto,
     userId?: number,
   ): Promise<Outfit> {
-    const outfit = await this.findOne(id, userId);
+    return this.outfitRepository
+      .getEntityManager()
+      .transactional(async (em) => {
+        const outfit = await em.findOne(
+          Outfit,
+          { id, owner: userId != null ? { id: userId } : null },
+          { populate: ['garments', 'garments.photo'], refresh: true },
+        );
+        if (!outfit) throw new NotFoundException('找不到这套搭配');
 
-    wrap(outfit).assign({
-      name: dto.name ?? outfit.name,
-      notes: dto.notes ?? outfit.notes,
-      slots: dto.slots ?? outfit.slots,
-    });
+        const selectedIds = dto.slots
+          ?.map((s) => s.garmentId)
+          .filter((id): id is number => id != null);
+        const currentIds = outfit.garments.getItems().map((g) => g.id);
+        const changedGarments =
+          selectedIds !== undefined &&
+          (new Set(selectedIds).size !== currentIds.length ||
+            currentIds.some((id) => !selectedIds.includes(id)));
+        if (
+          changedGarments &&
+          (await em.count(OutfitCalendar, { outfit: id }))
+        ) {
+          throw new ConflictException(
+            '这套搭配已有穿着安排。请先在日历取消安排，再修改衣物；也可以新建另一套搭配',
+          );
+        }
 
-    if (dto.slots !== undefined) {
-      const garmentIds = dto.slots
-        .map((s) => s.garmentId)
-        .filter((id): id is number => id !== null);
-      const garments = await this.garmentRepository.find({
-        id: { $in: garmentIds },
+        wrap(outfit).assign({
+          name: dto.name ?? outfit.name,
+          notes: dto.notes ?? outfit.notes,
+          slots: dto.slots ?? outfit.slots,
+        });
+
+        if (dto.slots !== undefined) {
+          const garmentIds = dto.slots
+            .map((s) => s.garmentId)
+            .filter((id): id is number => id !== null);
+          const garments = await em.find(Garment, {
+            id: { $in: garmentIds },
+            owner: userId != null ? { id: userId } : null,
+          });
+          if (
+            garments.length !== new Set(garmentIds).size ||
+            garmentIds.some((id) => !Number.isSafeInteger(id) || id <= 0)
+          ) {
+            throw new BadRequestException(
+              '部分衣物不存在或不可使用，请重新选择',
+            );
+          }
+          outfit.garments.set(garments);
+        }
+
+        await em.flush();
+        return outfit;
       });
-      outfit.garments.set(garments);
-    }
-
-    await this.outfitRepository.getEntityManager().flush();
-    return outfit;
   }
 
   async remove(id: number, userId?: number): Promise<void> {

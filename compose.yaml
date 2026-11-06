@@ -1,0 +1,23 @@
+services:
+  closet:
+    image: ghcr.io/huangruihao9-sys/libre-closet-zh:latest
+    ports:
+      - '3000:3000'
+    environment:
+      AUTH_ENABLED: 'false'
+      DATABASE_TYPE: sqlite
+      DATA_PATH: /app/data
+      PWA_ENABLED: 'true'
+      SUPPORTER_PROMPT_ENABLED: 'false'
+      TZ: Asia/Shanghai
+      APP_NAME: 双人衣橱
+    volumes:
+      - closet-data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    restart: unless-stopped
+volumes:
+  closet-data:

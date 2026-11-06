@@ -22,7 +22,8 @@
       </svg>
     </a>
     <h1 class="text-2xl font-bold">
-      {{#if isClone}}{{t 'lang.CLONE_GARMENT'}}{{else if garment}}{{t 'lang.EDIT_GARMENT'}}{{else}}{{t 'lang.NEW_GARMENT'}}{{/if}}
+      {{#if isClone}}{{t 'lang.CLONE_GARMENT'}}{{else if garment}}{{t
+      'lang.EDIT_GARMENT'}}{{else}}{{t 'lang.NEW_GARMENT'}}{{/if}}
     </h1>
   </div>
 
@@ -40,7 +41,7 @@
         name="name"
         class="input input-bordered"
         value="{{#if isClone}}{{cloneName}}{{else if garment}}{{garment.name}}{{/if}}"
-        placeholder="e.g. Black Linen Blazer"
+        placeholder="例如：黑色亚麻外套"
       />
     </div>
 
@@ -53,14 +54,14 @@
         name="category"
         list="category-suggestions"
         class="input input-bordered w-full"
-        value="{{#if garment}}{{garment.category}}{{/if}}"
+        value="{{#if garment}}{{garmentCategory garment.category}}{{/if}}"
         required
         placeholder="{{t 'lang.TYPE_OR_SELECT_CATEGORY'}}"
         autocomplete="off"
       />
       <datalist id="category-suggestions">
         {{#each categories}}
-        <option value="{{this.value}}"></option>
+        <option value="{{this.label}}"></option>
         {{/each}}
       </datalist>
     </div>
@@ -74,11 +75,12 @@
         name="brand"
         class="input input-bordered"
         value="{{#if garment}}{{garment.brand}}{{/if}}"
-        placeholder="e.g. Levi's"
+        placeholder="例如：优衣库"
       />
     </div>
 
-    {{> colorMultiSelect colors=colors garment=garment}}
+    {{> shared_garment_fields garment=garment}} {{> colorMultiSelect
+    colors=colors garment=garment}}
 
     <div class="form-control">
       <label class="label"
@@ -89,22 +91,28 @@
         name="size"
         class="input input-bordered"
         value="{{#if garment}}{{garment.size}}{{/if}}"
-        placeholder="M, 32, One Size…"
+        placeholder="M、32、均码……"
       />
     </div>
 
     <div class="form-control">
-      <label class="label"><span class="label-text">{{t 'lang.WASHING_DETAILS'}}</span></label>
+      <label class="label"
+        ><span class="label-text">{{t 'lang.WASHING_DETAILS'}}</span></label
+      >
       <textarea
         name="washingDetails"
         class="textarea textarea-bordered"
         rows="3"
-        placeholder="Wash at 30°C, do not tumble dry, do not iron…"
-      >{{#if garment}}{{garment.washingDetails}}{{/if}}</textarea>
+        placeholder="例如：30℃ 水洗，不可烘干……"
+      >
+{{#if garment}}{{garment.washingDetails}}{{/if}}</textarea
+      >
     </div>
 
     <div class="form-control">
-      <label class="label"><span class="label-text">{{t 'lang.DATE_AQUIRED'}}</span></label>
+      <label class="label"
+        ><span class="label-text">{{t 'lang.DATE_AQUIRED'}}</span></label
+      >
       <input
         type="date"
         name="dateAquired"
@@ -114,12 +122,14 @@
     </div>
 
     <div class="form-control">
-      <label class="label"><span class="label-text">{{t 'lang.NOTES'}}</span></label>
+      <label class="label"
+        ><span class="label-text">{{t 'lang.NOTES'}}</span></label
+      >
       <textarea
         name="notes"
         class="textarea textarea-bordered"
         rows="3"
-        placeholder="Any notes about this garment…"
+        placeholder="记录这件衣服的备注……"
       >
 {{#if garment}}{{garment.notes}}{{/if}}</textarea
       >

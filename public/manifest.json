@@ -1,6 +1,6 @@
 {
-  "short_name": "Libre Closet",
-  "name": "Libre Closet",
+  "short_name": "双人衣橱",
+  "name": "双人衣橱",
   "icons": [
     {
       "src": "/assets/lazztech_icon.webp",
@@ -15,50 +15,35 @@
     }
   ],
   "id": "/wardrobe",
-  "start_url": "/wardrobe",
+  "start_url": "/calendar/together",
   "theme_color": "#222428",
   "background_color": "#fafafa",
   "display": "standalone",
   "scope": "/",
   "shortcuts": [
     {
-      "name": "My Wardrobe",
-      "short_name": "Wardrobe",
-      "description": "Browse your clothing items",
+      "name": "我的衣橱",
+      "short_name": "衣橱",
+      "description": "查看共享衣物和洗涤状态",
       "url": "/wardrobe"
     },
     {
-      "name": "My Outfits",
-      "short_name": "Outfits",
-      "description": "Browse your saved outfits",
+      "name": "保存的穿搭",
+      "short_name": "穿搭",
+      "description": "查看保存的穿搭",
       "url": "/outfits"
     },
     {
-      "name": "Add Garment",
-      "short_name": "Add Garment",
-      "description": "Catalog a new clothing item",
+      "name": "添加衣物",
+      "short_name": "添加衣物",
+      "description": "记录一件新衣服",
       "url": "/wardrobe/new"
     }
   ],
-  "description": "A free, open-source digital wardrobe organizer. Catalog your clothing, build outfits, and share looks — self-hostable and privacy-first.",
-  "screenshots": [
-    {
-      "src": "/assets/screenshots/Screenshot_1.webp",
-      "sizes": "2300x2034",
-      "type": "image/webp",
-      "form_factor": "wide",
-      "label": "Wardrobe view with garment catalog"
-    },
-    {
-      "src": "/assets/screenshots/Screenshot_mobile_1.webp",
-      "sizes": "1179x2556",
-      "type": "image/webp",
-      "form_factor": "narrow",
-      "label": "Wardrobe view on mobile"
-    }
-  ],
+  "description": "两个人的共享衣橱，记录照片、洗涤状态和每日穿搭。",
   "categories": [
     "lifestyle",
     "utilities"
-  ]
+  ],
+  "lang": "zh-CN"
 }

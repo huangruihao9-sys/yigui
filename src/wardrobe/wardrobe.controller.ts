@@ -141,6 +141,9 @@ export class WardrobeController {
       size?: string;
       notes?: string;
       washingDetails?: string;
+      laundryStatus?: string;
+      primaryOwner?: string;
+      wearableBy?: string;
       dateAquired?: string;
     },
     @Req() req: FastifyRequest,
@@ -172,6 +175,9 @@ export class WardrobeController {
         size: body.size,
         notes: body.notes,
         washingDetails: body.washingDetails,
+        laundryStatus: body.laundryStatus,
+        primaryOwner: body.primaryOwner,
+        wearableBy: body.wearableBy,
         dateAquired: body.dateAquired,
       },
       viewOwner ?? userId,
@@ -312,6 +318,9 @@ export class WardrobeController {
     @Param('id', ParseIntPipe) id: number,
     @Body()
     body: {
+      laundryStatus?: string;
+      primaryOwner?: string;
+      wearableBy?: string;
       name?: string;
       category: string;
       brand?: string;
@@ -331,6 +340,9 @@ export class WardrobeController {
       id,
       {
         name: body.name,
+        laundryStatus: body.laundryStatus,
+        primaryOwner: body.primaryOwner,
+        wearableBy: body.wearableBy,
         category: body.category,
         brand: body.brand,
         color: Array.isArray(body.color) ? body.color.join(',') : body.color,
@@ -354,6 +366,9 @@ export class WardrobeController {
       size?: string;
       notes?: string;
       washingDetails?: string;
+      laundryStatus?: string;
+      primaryOwner?: string;
+      wearableBy?: string;
       dateAquired?: string;
     },
     @Req() req: FastifyRequest,
@@ -378,6 +393,9 @@ export class WardrobeController {
         size: body.size,
         notes: body.notes,
         washingDetails: body.washingDetails,
+        laundryStatus: body.laundryStatus,
+        primaryOwner: body.primaryOwner,
+        wearableBy: body.wearableBy,
         dateAquired: body.dateAquired,
       },
       viewOwner ?? userId,
@@ -385,6 +403,36 @@ export class WardrobeController {
     );
     const redirectSuffix = viewOwner ? `?ownerId=${viewOwner}` : '';
     return reply.redirect(`/wardrobe/${id}${redirectSuffix}`, 302);
+  }
+
+  @Post(':id/laundry')
+  async laundry(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { laundryStatus: string },
+    @Req() req: FastifyRequest,
+    @Res() reply: FastifyReply,
+    @Query('ownerId') ownerId?: string,
+  ) {
+    const userId = this.userId(req);
+    const viewOwner = ownerId ? Number(ownerId) : undefined;
+    if (
+      userId != null &&
+      viewOwner != null &&
+      viewOwner !== userId &&
+      !(await this.shareService.canManage(userId, viewOwner))
+    ) {
+      throw new ForbiddenException();
+    }
+    await this.garmentService.update(
+      id,
+      { laundryStatus: body.laundryStatus },
+      viewOwner ?? userId,
+      userId,
+    );
+    return reply.redirect(
+      `/wardrobe/${id}${viewOwner ? `?ownerId=${viewOwner}` : ''}`,
+      303,
+    );
   }
 
   @Post(':id/photo')

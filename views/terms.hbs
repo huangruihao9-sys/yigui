@@ -1,34 +1,21 @@
 {{>navbar}}
-
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{siteUrl}}/"},
-      {"@type": "ListItem", "position": 2, "name": "Terms of Service", "item": "{{siteUrl}}/terms"}
-    ]
-  }
-</script>
-
-<main class="flex flex-col items-center py-16 px-4">
-  <div class="max-w-2xl w-full prose">
-    <h1 class="text-3xl font-bold mb-8">{{t 'lang.TERMS_HEADING'}}</h1>
-
-    <p class="mb-6">{{t 'lang.TERMS_INTRO'}}</p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-3">{{t 'lang.TERMS_SERVICE'}}</h2>
-    <p class="mb-6">{{t 'lang.TERMS_SERVICE_DESC'}}</p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-3">{{t 'lang.TERMS_LICENSE'}}</h2>
-    <p class="mb-6">{{t 'lang.TERMS_LICENSE_DESC'}}</p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-3">{{t 'lang.TERMS_NO_WARRANTY'}}</h2>
-    <p class="mb-6">{{t 'lang.TERMS_NO_WARRANTY_DESC'}}</p>
-
-    <h2 class="text-xl font-semibold mt-8 mb-3">{{t 'lang.TERMS_CONTACT'}}</h2>
-    <p class="mb-6">{{t 'lang.TERMS_CONTACT_DESC'}}</p>
-  </div>
+<main class="p-4 pt-20 pb-24 max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">使用说明</h1>
+  <p class="mb-4">
+    添加衣物及照片，选择主要归属、可穿者和洗涤状态。洗好晾干后将衣物改为“干净”。
+  </p>
+  <p class="mb-4">
+    首页默认显示按中国时间计算的明日穿搭。两人各一套，可以为对方安排。相同衣物不能在同一天重复安排；脏衣、洗涤和晾晒中的衣物不能安排。
+  </p>
+  <p class="mb-4">
+    标记已穿会将衣物放入待洗。撤销标记不会自动洗净衣物。修改已安排搭配中的衣物前，请先取消相应的日历安排。
+  </p>
+  <p class="mb-4">
+    联网刷新后读取服务器最新记录。此版本不支持离线编辑，避免两台手机产生互相覆盖的数据。
+  </p>
+  <p>
+    软件按 AGPL-3.0
+    提供；源码和许可证可在“关于与源码”查看。没有服务可用性或数据永久保存的保证，请保留独立备份。
+  </p>
 </main>
-
 {{>dock}}

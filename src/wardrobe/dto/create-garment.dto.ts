@@ -1,5 +1,8 @@
 import { MultipartFile } from '@fastify/multipart';
 export interface CreateGarmentDto {
+  laundryStatus?: string;
+  primaryOwner?: string;
+  wearableBy?: string;
   name?: string;
   category: string;
   brand?: string;

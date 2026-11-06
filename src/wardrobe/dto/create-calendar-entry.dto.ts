@@ -1,5 +1,7 @@
 export interface CreateCalendarEntryDto {
-  date: Date;
+  date: Date | string;
+  wearer?: string;
+  plannedBy?: string;
   outfitId: number;
   notes?: string;
 }

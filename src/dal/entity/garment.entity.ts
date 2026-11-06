@@ -1,7 +1,7 @@
 import {
   Collection,
   Entity,
-  Enum,
+  OptionalProps,
   ManyToMany,
   ManyToOne,
   OneToOne,
@@ -19,6 +19,11 @@ export { GarmentColor };
 
 @Entity()
 export class Garment extends ShareableId {
+  [OptionalProps]?:
+    | 'archived'
+    | 'laundryStatus'
+    | 'primaryOwner'
+    | 'wearableBy';
   @PrimaryKey()
   public id!: number;
 
@@ -28,8 +33,8 @@ export class Garment extends ShareableId {
   @Property()
   public category!: string;
 
-  @Enum({ nullable: true })
-  public color?: GarmentColor;
+  @Property({ nullable: true })
+  public color?: string;
 
   @Property({ nullable: true })
   public brand?: string;
@@ -48,11 +53,20 @@ export class Garment extends ShareableId {
   @Property({ nullable: true, columnType: 'text' })
   public washingDetails?: string;
 
+  @Property({ default: 'clean' })
+  public laundryStatus = 'clean';
+
+  @Property({ default: 'both' })
+  public primaryOwner = 'both';
+
+  @Property({ default: 'both' })
+  public wearableBy = 'both';
+
   @OneToOne({
     entity: () => File,
     nullable: true,
   })
-  public photo?: Ref<File>;
+  public photo?: File;
 
   @ManyToOne({
     entity: () => User,

@@ -1,6 +1,9 @@
 {{>navbar}}
 
 <main class="p-4 pt-20 pb-24">
+  <a href="/calendar/together" class="btn btn-outline btn-sm mb-4"
+    >明日双人穿搭</a
+  >
   {{!-- Responsive grid: 1 col → 2 col (400px+) → 4 col (lg) → 8 col horizontal
   (2xl) --}}
   <div
@@ -16,7 +19,7 @@
         <a
           href="/calendar?week={{prevMonthWeekParam}}&calMonth={{prevMonthParam}}"
           class="btn btn-ghost btn-xs btn-square"
-          aria-label="Previous month"
+          aria-label="上个月"
           >‹</a
         >
         <p
@@ -27,7 +30,7 @@
         <a
           href="/calendar?week={{nextMonthWeekParam}}&calMonth={{nextMonthParam}}"
           class="btn btn-ghost btn-xs btn-square"
-          aria-label="Next month"
+          aria-label="下个月"
           >›</a
         >
       </div>
@@ -146,6 +149,7 @@
             style="{{#if this.wornAt}}background:hsl({{this.outfit.chipHue}} 65% 55% / 0.22);border-color:hsl({{this.outfit.chipHue}} 65% 60% / 0.45);color:hsl({{this.outfit.chipHue}} 80% 75%){{else}}background:hsl({{this.outfit.chipHue}} 55% 50% / 0.08);border-color:hsl({{this.outfit.chipHue}} 55% 55% / 0.22);color:hsl({{this.outfit.chipHue}} 50% 65%){{/if}}"
             onclick="window.location.href='/outfits/{{this.outfit.id}}/edit?returnTo=/calendar&returnToWeek={{../dateParam}}'"
           >
+            <span>{{this.wearerLabel}}</span>
             {{!-- Left: garment thumbnails if available, else name/untitled
             fallback --}} {{#if this.outfit.garmentPhotos.length}}
             <span

@@ -13,7 +13,28 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
 import { ViewContextService } from './view-context/view-context.service';
+import { LAUNDRY_LABELS, PERSON_LABELS } from './wardrobe/shared-wardrobe';
 import { GarmentColor } from './wardrobe/garment-color.enum';
+import { GarmentCategory } from './wardrobe/garment-category.enum';
+import { I18nContext } from 'nestjs-i18n';
+const colorNames: Record<string, string> = {
+  red: '红色',
+  pink: '粉色',
+  orange: '橙色',
+  yellow: '黄色',
+  green: '绿色',
+  blue: '蓝色',
+  purple: '紫色',
+  black: '黑色',
+  white: '白色',
+  grey: '灰色',
+  beige: '米色',
+  brown: '棕色',
+  gold: '金色',
+  silver: '银色',
+  pattern: '花纹',
+  other: '其他',
+};
 
 async function bootstrap() {
   // https://docs.nestjs.com/security/rate-limiting#proxies
@@ -169,11 +190,28 @@ async function bootstrap() {
       return arr.includes(item) ? options.fn(this) : options.inverse(this);
     },
   );
+  hbs.registerHelper(
+    'laundryLabel',
+    (value: string) => LAUNDRY_LABELS[value] ?? value,
+  );
+  hbs.registerHelper(
+    'personLabel',
+    (value: string) => PERSON_LABELS[value] ?? value,
+  );
+  hbs.registerHelper(
+    'colorLabel',
+    (value: string) => colorNames[value] ?? value,
+  );
+  hbs.registerHelper('garmentCategory', (value: string) =>
+    Object.values(GarmentCategory).includes(value as GarmentCategory)
+      ? I18nContext.current()?.t(`lang.CATEGORY_${value.toUpperCase()}`)
+      : value,
+  );
   hbs.registerHelper('formatColors', function (value: string | undefined) {
     if (!value) return '';
     return value
       .split(',')
-      .map((s) => s.trim())
+      .map((s) => colorNames[s.trim()] ?? s.trim())
       .join(', ');
   });
   hbs.registerHelper(

@@ -105,5 +105,16 @@ describe('sqlite migrations', () => {
     for (const [table, count] of Object.entries(before)) {
       expect({ table, count: after[table] }).toEqual({ table, count });
     }
+    const garments = await orm.em
+      .getConnection()
+      .execute(
+        'select laundry_status, primary_owner, wearable_by, photo_id from garment order by id',
+      );
+    expect(garments[0]).toEqual({
+      laundry_status: 'clean',
+      primary_owner: 'both',
+      wearable_by: 'both',
+      photo_id: 1,
+    });
   });
 });

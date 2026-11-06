@@ -29,6 +29,7 @@
 
   {{#if categoryRows.length}}
   <form
+    hx-boost="false"
     method="POST"
     action="{{#if outfit}}/outfits/{{outfit.id}}{{else}}/outfits{{/if}}"
     class="flex flex-col gap-4"
@@ -81,7 +82,7 @@
         name="name"
         class="input input-bordered w-full"
         value="{{#if outfit}}{{outfit.name}}{{/if}}"
-        placeholder="e.g. Summer Date Night"
+        placeholder="例如：周末约会"
       />
     </div>
 
@@ -93,7 +94,7 @@
         name="notes"
         class="textarea textarea-bordered w-full"
         rows="2"
-        placeholder="Occasion, weather, etc."
+        placeholder="场合、天气等备注"
       >
 {{#if outfit}}{{outfit.notes}}{{/if}}</textarea
       >
@@ -113,6 +114,7 @@
       />
     </div>
 
+    {{> plan_people wearer=wearer}}
     <div class="flex gap-2 mt-2">
       <button type="submit" class="btn btn-primary flex-1">
         {{t 'lang.SAVE'}}

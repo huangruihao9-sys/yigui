@@ -8,6 +8,12 @@
     {{/if}}
   </div>
 
+  <a href="/calendar/together" class="btn btn-outline btn-sm mb-4">明日双人穿搭</a>
+  <form method="get" action="/wardrobe" class="flex flex-wrap gap-2 mb-4" hx-boost="false">
+    <label>洗涤状态<select name="laundryStatus" class="select select-bordered select-sm"><option value="">全部状态</option><option value="clean" {{#ifEquals search.laundryStatus 'clean'}}selected{{/ifEquals}}>干净</option><option value="dirty" {{#ifEquals search.laundryStatus 'dirty'}}selected{{/ifEquals}}>待洗</option><option value="washing" {{#ifEquals search.laundryStatus 'washing'}}selected{{/ifEquals}}>清洗中</option><option value="drying" {{#ifEquals search.laundryStatus 'drying'}}selected{{/ifEquals}}>晾晒中</option></select></label>
+    <label>可穿者<select name="wearer" class="select select-bordered select-sm"><option value="">两人所有衣物</option><option value="me" {{#ifEquals search.wearer 'me'}}selected{{/ifEquals}}>我可以穿</option><option value="partner" {{#ifEquals search.wearer 'partner'}}selected{{/ifEquals}}>女朋友可以穿</option></select></label>
+    <button class="btn btn-sm self-end" type="submit">筛选</button>
+  </form>
   {{!-- Shared wardrobe switcher --}}
   {{#if sharedWardrobes.length}}
   <div class="mb-4 px-2">
@@ -38,8 +44,8 @@
         {{/if}}
       </figure>
       <div class="card-body p-3">
-        <h2 class="card-title text-sm">{{this.name}}</h2>
-        <p class="text-xs text-base-content/60 capitalize">{{this.category}}</p>
+        <h2 class="card-title text-sm">{{this.name}}</h2><p class="text-xs">{{laundryLabel this.laundryStatus}} · {{personLabel this.primaryOwner}}</p>
+        <p class="text-xs text-base-content/60 capitalize">{{garmentCategory this.category}}</p>
       </div>
     </a>
     {{/each}}
@@ -71,7 +77,7 @@
     </button>
 
     {{#if search.category}}
-    <a href="/wardrobe?keyword={{search.keyword}}&color={{search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&color={{colorLabel search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
       class="badge badge-primary badge-sm gap-1 cursor-pointer capitalize no-underline">
       {{search.category}} &times;
     </a>
@@ -79,17 +85,17 @@
     {{#if search.color}}
     <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
       class="badge badge-secondary badge-sm gap-1 cursor-pointer capitalize no-underline">
-      {{search.color}} &times;
+      {{colorLabel search.color}} &times;
     </a>
     {{/if}}
     {{#if search.size}}
-    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{search.color}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{colorLabel search.color}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
       class="badge badge-accent badge-sm gap-1 cursor-pointer no-underline">
       {{search.size}} &times;
     </a>
     {{/if}}
     {{#if search.archived}}
-    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{colorLabel search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
       class="badge badge-warning badge-sm gap-1 cursor-pointer no-underline">
       {{t 'lang.ARCHIVED'}} &times;
     </a>
@@ -99,7 +105,7 @@
   {{!-- Search input row --}}
   <form method="get" action="/wardrobe" id="search-form" class="flex gap-2">
     <input type="hidden" name="category" id="active-category" value="{{search.category}}">
-    <input type="hidden" name="color" id="active-color" value="{{search.color}}">
+    <input type="hidden" name="color" id="active-color" value="{{colorLabel search.color}}">
     <input type="hidden" name="size" id="active-size" value="{{search.size}}">
     <input type="hidden" name="archived" id="active-archived" value="{{search.archived}}">
     {{#if viewOwner}}<input type="hidden" name="ownerId" value="{{viewOwner}}">{{/if}}
@@ -141,7 +147,7 @@
         <label class="cursor-pointer">
           <input type="radio" name="modal-color" value="{{this}}" class="hidden peer"
             {{#ifEquals this ../search.color}}checked{{/ifEquals}}>
-          <span class="badge badge-outline peer-checked:badge-secondary capitalize select-none">{{this}}</span>
+          <span class="badge badge-outline peer-checked:badge-secondary capitalize select-none">{{colorLabel this}}</span>
         </label>
         {{/each}}
       </div>

@@ -1,11 +1,18 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
+  BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  parsePlanDate,
+  validatePerson,
+  PERSON_LABELS,
+} from './shared-wardrobe';
 import { OutfitCalendar } from '../dal/entity/outfit-calendar.entity';
 import { Outfit } from '../dal/entity/outfit.entity';
 import { User } from '../dal/entity/user.entity';
@@ -101,29 +108,138 @@ export class CalendarService {
     dto: CreateCalendarEntryDto,
     userId?: number,
   ): Promise<OutfitCalendar> {
-    const outfit = await this.outfitRepository.findOne(
-      userId != null
-        ? { id: dto.outfitId, owner: { id: userId } }
-        : { id: dto.outfitId, owner: null },
-    );
-    if (!outfit) throw new NotFoundException('Outfit not found');
+    const date = parsePlanDate(dto.date);
+    const wearer = dto.wearer ?? 'me';
+    const plannedBy = dto.plannedBy ?? 'me';
+    validatePerson(wearer);
+    validatePerson(plannedBy);
+    // SQLite serializes these transactions on its single writer connection.
+    return this.calendarRepository
+      .getEntityManager()
+      .transactional(async (em) => {
+        const owner =
+          userId != null ? { owner: { id: userId } } : { owner: null };
+        const outfit = await em.findOne(
+          Outfit,
+          { id: dto.outfitId, ...owner },
+          {
+            populate: ['garments', 'garments.photo'],
+            refresh: true,
+          },
+        );
+        if (!outfit) throw new NotFoundException('找不到这套搭配');
+        const garments = outfit.garments.getItems();
+        if (!garments.length)
+          throw new BadRequestException('请先为搭配选择衣物');
+        for (const garment of garments) {
+          if (
+            garment.owner?.id !== userId &&
+            (userId != null || garment.owner != null)
+          ) {
+            throw new ForbiddenException('不能使用其他衣橱的衣物');
+          }
+          if (
+            garment.archived ||
+            garment.laundryStatus !== 'clean' ||
+            (garment.wearableBy !== 'both' && garment.wearableBy !== wearer)
+          ) {
+            throw new BadRequestException(
+              `${garment.name || '这件衣物'}目前不适合安排给${PERSON_LABELS[wearer]}，请检查洗涤状态和可穿者`,
+            );
+          }
+        }
+        const entries = await em.find(
+          OutfitCalendar,
+          { date, ...owner },
+          {
+            populate: ['outfit.garments'],
+            refresh: true,
+          },
+        );
+        const ids = new Set(garments.map((g) => g.id));
+        for (const entry of entries) {
+          if (entry.wearer === wearer)
+            throw new ConflictException(
+              '这一天已经安排了穿搭，请先取消原安排再更换',
+            );
+          if (
+            entry.outfit
+              .unwrap()
+              .garments.getItems()
+              .some((g) => ids.has(g.id))
+          ) {
+            throw new ConflictException(
+              '有衣物已安排给另一人，请选择其他衣物或更换日期',
+            );
+          }
+        }
+        const entry = em.create(OutfitCalendar, {
+          date,
+          outfit,
+          notes: dto.notes,
+          wearer,
+          plannedBy,
+        });
+        if (userId != null)
+          entry.owner = em.getReference(User, userId, { wrapped: true });
+        await em.persistAndFlush(entry);
+        return entry;
+      });
+  }
 
-    const entry = this.calendarRepository.create({
-      date: dto.date,
-      outfit,
-      notes: dto.notes,
+  async buildTogetherViewModel(dateParam?: string, userId?: number) {
+    const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString(
+      'sv-SE',
+      { timeZone: 'Asia/Shanghai' },
+    );
+    const date = parsePlanDate(dateParam ?? tomorrow);
+    const dateValue = date.toISOString().slice(0, 10);
+    const owner = userId != null ? { owner: { id: userId } } : { owner: null };
+    const entries = await this.calendarRepository.find(
+      { date, ...owner },
+      { populate: ['outfit.garments.photo'] },
+    );
+    const outfits = await this.findOutfitsForUser(userId);
+    const cards = ['me', 'partner'].map((wearer) => {
+      const entry = entries.find((e) => e.wearer === wearer);
+      const reserved = new Set(
+        entries
+          .filter((e) => e.wearer !== wearer)
+          .flatMap((e) =>
+            e.outfit
+              .unwrap()
+              .garments.getItems()
+              .map((g) => g.id),
+          ),
+      );
+      return {
+        wearer,
+        label: PERSON_LABELS[wearer],
+        entry: entry
+          ? {
+              id: entry.id,
+              wornAt: entry.wornAt,
+              name: entry.outfit.unwrap().name,
+              plannedByLabel: PERSON_LABELS[entry.plannedBy],
+              garments: entry.outfit.unwrap().garments.getItems(),
+            }
+          : null,
+        outfits: outfits.filter(
+          (o) =>
+            o.garments.length > 0 &&
+            o.garments
+              .getItems()
+              .every(
+                (g) =>
+                  !reserved.has(g.id) &&
+                  !g.archived &&
+                  g.laundryStatus === 'clean' &&
+                  (g.wearableBy === 'both' || g.wearableBy === wearer),
+              ),
+        ),
+      };
     });
-
-    if (userId != null) {
-      const user = await this.userRepository.findOneOrFail(userId);
-      entry.owner = user as any;
-    }
-
-    await this.calendarRepository.getEntityManager().persistAndFlush(entry);
-    this.logger.log(
-      `Calendar entry created: outfitId=${dto.outfitId} date=${dto.date.toISOString()} userId=${userId}`,
-    );
-    return entry;
+    return { date: dateValue, isTomorrow: dateValue === tomorrow, cards };
   }
 
   async remove(id: number, userId?: number): Promise<void> {
@@ -137,7 +253,18 @@ export class CalendarService {
    */
   async toggleWorn(id: number, userId?: number): Promise<OutfitCalendar> {
     const entry = await this.findOneOwned(id, userId);
-    entry.wornAt = entry.wornAt == null ? new Date() : undefined;
+    if (entry.wornAt == null) {
+      const garments = entry.outfit.unwrap().garments.getItems();
+      if (garments.some((g) => g.laundryStatus !== 'clean' || g.archived)) {
+        throw new BadRequestException(
+          '有衣物尚未干净或已归档，请先检查衣物状态',
+        );
+      }
+      for (const garment of garments) garment.laundryStatus = 'dirty';
+      entry.wornAt = new Date();
+    } else {
+      entry.wornAt = undefined;
+    }
     await this.calendarRepository.getEntityManager().flush();
     return entry;
   }
@@ -431,6 +558,8 @@ export class CalendarService {
           return {
             id: entry.id,
             wornAt: entry.wornAt ?? null,
+            wearerLabel: PERSON_LABELS[entry.wearer],
+            plannedByLabel: PERSON_LABELS[entry.plannedBy],
             outfit: {
               id: outfit.id,
               name: outfit.name || null,
@@ -541,9 +670,10 @@ export class CalendarService {
     userId?: number,
   ): Promise<OutfitCalendar> {
     const entry = await this.calendarRepository.findOne(id, {
-      populate: ['outfit'],
+      populate: ['outfit', 'outfit.garments'],
+      refresh: true,
     });
-    if (!entry) throw new NotFoundException('Calendar entry not found');
+    if (!entry) throw new NotFoundException('找不到这条穿搭安排');
 
     if (userId != null) {
       if (entry.owner?.id !== userId) throw new ForbiddenException();

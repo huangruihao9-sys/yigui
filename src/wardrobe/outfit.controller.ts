@@ -51,6 +51,7 @@ export class OutfitController {
     @I18n() i18n: I18nContext,
     @Query('scheduleDate') scheduleDate?: string,
     @Query('returnTo') returnTo?: string,
+    @Query('wearer') wearer?: string,
   ) {
     const garments = await this.garmentService.findAll(this.userId(req));
     const categoryRows = this.outfitService.buildCategoryRows(
@@ -60,6 +61,7 @@ export class OutfitController {
     );
     return {
       outfit: null,
+      wearer,
       scheduleDate: scheduleDate || null,
       returnTo: returnTo || '/outfits',
       categoryRows,
@@ -74,6 +76,8 @@ export class OutfitController {
       name?: string;
       notes?: string;
       scheduleDate?: string;
+      wearer?: string;
+      plannedBy?: string;
       category?: string | string[];
       garmentId?: string | string[];
       returnTo?: string;
@@ -93,7 +97,12 @@ export class OutfitController {
     );
     if (body.scheduleDate) {
       await this.calendarService.create(
-        { date: new Date(body.scheduleDate), outfitId: outfit.id },
+        {
+          date: body.scheduleDate,
+          outfitId: outfit.id,
+          wearer: body.wearer,
+          plannedBy: body.plannedBy,
+        },
         this.userId(req),
       );
     }
@@ -170,6 +179,8 @@ export class OutfitController {
       name?: string;
       notes?: string;
       scheduleDate?: string;
+      wearer?: string;
+      plannedBy?: string;
       category?: string | string[];
       garmentId?: string | string[];
       returnTo?: string;
@@ -190,7 +201,12 @@ export class OutfitController {
     );
     if (body.scheduleDate) {
       await this.calendarService.create(
-        { date: new Date(body.scheduleDate), outfitId: id },
+        {
+          date: body.scheduleDate,
+          outfitId: id,
+          wearer: body.wearer,
+          plannedBy: body.plannedBy,
+        },
         this.userId(req),
       );
     }

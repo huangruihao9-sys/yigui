@@ -61,6 +61,15 @@ export class CalendarController {
     );
   }
 
+  @Get('together')
+  @Render('together')
+  async together(
+    @Query('date') date: string | undefined,
+    @Req() req: FastifyRequest,
+  ) {
+    return this.calendarService.buildTogetherViewModel(date, this.userId(req));
+  }
+
   @Get('weather')
   async weatherDetails(
     @Query('date') dateParam: string | undefined,
@@ -88,18 +97,33 @@ export class CalendarController {
   @Post()
   async create(
     @Body()
-    body: { date: string; outfitId: string; notes?: string; week?: string },
+    body: {
+      date: string;
+      outfitId: string;
+      notes?: string;
+      week?: string;
+      wearer?: string;
+      plannedBy?: string;
+      returnTo?: string;
+    },
     @Req() req: FastifyRequest,
     @Res() reply: FastifyReply,
   ) {
     await this.calendarService.create(
       {
-        date: new Date(body.date),
+        date: body.date,
+        wearer: body.wearer,
+        plannedBy: body.plannedBy,
         outfitId: Number(body.outfitId),
         notes: body.notes,
       },
       this.userId(req),
     );
+    if (body.returnTo === 'together')
+      return reply.redirect(
+        `/calendar/together?date=${encodeURIComponent(body.date)}`,
+        303,
+      );
     if (req.headers['hx-request'] === 'true') {
       return reply.status(204).send();
     }
@@ -110,24 +134,34 @@ export class CalendarController {
   @HttpCode(200)
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { week?: string },
+    @Body() body: { week?: string; returnTo?: string; date?: string },
     @Req() req: FastifyRequest,
     @Res() reply: FastifyReply,
   ) {
     await this.calendarService.remove(id, this.userId(req));
-    reply.header('HX-Redirect', `/calendar?week=${body.week ?? ''}`);
-    return reply.send();
+    const url =
+      body.returnTo === 'together'
+        ? `/calendar/together?date=${encodeURIComponent(body.date ?? '')}`
+        : `/calendar?week=${body.week ?? ''}`;
+    if (req.headers['hx-request'])
+      return reply.header('HX-Redirect', url).send();
+    return reply.redirect(url, 303);
   }
 
   @Post(':id/worn')
   async toggleWorn(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { week?: string },
+    @Body() body: { week?: string; returnTo?: string; date?: string },
     @Req() req: FastifyRequest,
     @Res() reply: FastifyReply,
     @I18n() i18n: I18nContext,
   ) {
     const entry = await this.calendarService.toggleWorn(id, this.userId(req));
+    if (body.returnTo === 'together')
+      return reply.redirect(
+        `/calendar/together?date=${encodeURIComponent(body.date ?? '')}`,
+        303,
+      );
     const week = body.week ?? '';
 
     if (req.headers['hx-request']) {

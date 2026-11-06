@@ -1,0 +1,22 @@
+<label class="form-control">洗涤状态
+  <select name="laundryStatus" class="select select-bordered w-full">
+    <option value="clean" {{#ifEquals garment.laundryStatus 'clean'}}selected{{/ifEquals}}>干净</option>
+    <option value="dirty" {{#ifEquals garment.laundryStatus 'dirty'}}selected{{/ifEquals}}>待洗</option>
+    <option value="washing" {{#ifEquals garment.laundryStatus 'washing'}}selected{{/ifEquals}}>清洗中</option>
+    <option value="drying" {{#ifEquals garment.laundryStatus 'drying'}}selected{{/ifEquals}}>晾晒中</option>
+  </select>
+</label>
+<label class="form-control">主要归属
+  <select name="primaryOwner" class="select select-bordered w-full">
+    <option value="both" {{#ifEquals garment.primaryOwner 'both'}}selected{{/ifEquals}}>两人共用</option>
+    <option value="me" {{#ifEquals garment.primaryOwner 'me'}}selected{{/ifEquals}}>我</option>
+    <option value="partner" {{#ifEquals garment.primaryOwner 'partner'}}selected{{/ifEquals}}>女朋友</option>
+  </select>
+</label>
+<label class="form-control">谁可以穿
+  <select name="wearableBy" class="select select-bordered w-full">
+    <option value="both" {{#ifEquals garment.wearableBy 'both'}}selected{{/ifEquals}}>两人都可以穿</option>
+    <option value="me" {{#ifEquals garment.wearableBy 'me'}}selected{{/ifEquals}}>只有我</option>
+    <option value="partner" {{#ifEquals garment.wearableBy 'partner'}}selected{{/ifEquals}}>只有女朋友</option>
+  </select>
+</label>

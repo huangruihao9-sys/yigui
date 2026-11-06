@@ -1,0 +1,159 @@
+{{>navbar}}
+<main class="p-4 pt-20 pb-24 max-w-4xl mx-auto">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">
+        {{#if isTomorrow}}明天穿什么{{else}}这一天的穿搭{{/if}}
+      </h1>
+      <p class="text-sm text-base-content/60 mt-1">
+        两个人一起选，彼此都能修改。
+      </p>
+    </div>
+    <a class="btn btn-outline btn-sm" href="/calendar">查看日历</a>
+  </div>
+  <form
+    method="get"
+    action="/calendar/together"
+    class="flex flex-wrap items-end gap-2 mb-6"
+    hx-boost="false"
+  >
+    <label class="flex flex-col gap-1"
+      >穿着日期
+      <input
+        type="date"
+        name="date"
+        value="{{date}}"
+        required
+        class="input input-bordered"
+    /></label>
+    <button class="btn" type="submit">查看</button>
+  </form>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {{#each cards}}
+    <section class="card bg-base-200 shadow-sm" aria-label="{{label}}的穿搭">
+      <div class="card-body p-5">
+        <h2 class="card-title">{{label}}的穿搭</h2>
+        {{#if entry}}
+        <p class="font-semibold">
+          {{#if entry.name}}{{entry.name}}{{else}}未命名搭配{{/if}}
+        </p>
+        <p class="text-sm text-base-content/60">
+          由{{entry.plannedByLabel}}搭配 · {{#if
+          entry.wornAt}}已经穿过，衣物已进入待洗{{else}}已安排{{/if}}
+        </p>
+        <div class="flex flex-wrap gap-3 my-3">
+          {{#each entry.garments}}
+          <a href="/wardrobe/{{id}}" class="w-24 text-sm">
+            {{#if photo}}<img
+              src="/file/nobg/{{photo.fileName}}"
+              alt="{{name}}"
+              class="w-24 h-28 object-contain rounded-lg bg-base-100"
+            />{{/if}}
+            <span class="block mt-1 break-words">{{name}}</span>
+            <span class="text-xs text-base-content/60"
+              >{{laundryLabel laundryStatus}}</span
+            >
+          </a>
+          {{/each}}
+        </div>
+        <form
+          method="post"
+          action="/calendar/{{entry.id}}/worn"
+          hx-boost="false"
+        >
+          <input type="hidden" name="returnTo" value="together" /><input
+            type="hidden"
+            name="date"
+            value="{{../date}}"
+          />
+          <button type="submit" class="btn btn-primary w-full">
+            {{#if entry.wornAt}}撤销穿过标记{{else}}标记已穿，放入待洗{{/if}}
+          </button>
+        </form>
+        <form
+          method="post"
+          action="/calendar/{{entry.id}}/delete"
+          hx-boost="false"
+        >
+          <input type="hidden" name="returnTo" value="together" /><input
+            type="hidden"
+            name="date"
+            value="{{../date}}"
+          />
+          <button type="submit" class="btn btn-ghost w-full">
+            取消安排，重新选择
+          </button>
+        </form>
+        {{else}}
+        <p class="text-sm text-base-content/60">
+          还没有安排。可以为对方挑一套。
+        </p>
+        {{#if outfits.length}}
+        <form
+          method="post"
+          action="/calendar"
+          class="flex flex-col gap-3 mt-3"
+          hx-boost="false"
+        >
+          <input type="hidden" name="date" value="{{../date}}" /><input
+            type="hidden"
+            name="wearer"
+            value="{{wearer}}"
+          /><input type="hidden" name="returnTo" value="together" />
+          <label
+            >选择搭配<select
+              name="outfitId"
+              required
+              class="select select-bordered w-full"
+            >
+              <option value="">请选择</option>
+              {{#each outfits}}
+              <option value="{{id}}">
+                {{#if name}}{{name}}{{else}}未命名搭配 #{{id}}{{/if}}
+              </option>
+              {{/each}}
+            </select></label
+          >
+          <label
+            >由谁搭配<select
+              name="plannedBy"
+              required
+              class="select select-bordered w-full"
+            >
+              <option value="me">我</option>
+              <option value="partner">女朋友</option>
+            </select></label
+          >
+          <button type="submit" class="btn btn-primary">安排这套</button>
+        </form>
+        {{else}}
+        <p class="text-sm my-3">
+          暂时没有可用搭配。只会显示干净、可穿且未被另一人占用的衣物组成的搭配。
+        </p>
+        {{/if}}
+        <a
+          class="btn btn-outline mt-2"
+          href="/outfits/new?scheduleDate={{../date}}&wearer={{wearer}}&returnTo=/calendar"
+          >新建一套搭配</a
+        >
+        {{/if}}
+      </div>
+    </section>
+    {{/each}}
+  </div>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <a href="/wardrobe/new" class="btn btn-primary">添加衣服</a
+    ><a href="/wardrobe?laundryStatus=dirty" class="btn btn-outline"
+      >共用洗衣篮</a
+    ><a href="/wardrobe" class="btn btn-ghost">全部衣服</a>
+  </div>
+  <p class="text-xs text-base-content/60 mt-5">
+    两端联网刷新即可同步。撤销穿过标记不会自动将衣物变干净，请在洗好晾干后更新状态。
+  </p>
+  <p class="text-xs text-base-content/60 mt-3">
+    <a class="link" href="/about">关于与源码</a> ·
+    <a class="link" href="/privacy">隐私说明</a> ·
+    <a class="link" href="/terms">使用说明</a>
+  </p>
+</main>
+{{>dock}}

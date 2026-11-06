@@ -38,7 +38,7 @@
       id="editMaskBtn"
       type="button"
       class="btn btn-circle btn-sm absolute top-2 right-2 btn-neutral opacity-80 hover:opacity-100"
-      title="Edit mask"
+      title="编辑抠图"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -221,6 +221,14 @@
     {{/if}}
   </script>
   {{/if}} {{!-- Metadata --}}
+  <div class="card bg-base-200 mb-4"><div class="card-body p-4">
+    <p>主要归属：{{personLabel garment.primaryOwner}} · 可穿者：{{personLabel garment.wearableBy}}</p>
+    <p>当前状态：<strong>{{laundryLabel garment.laundryStatus}}</strong></p>
+    {{#if canEdit}}<form method="post" action="/wardrobe/{{garment.id}}/laundry{{#if viewOwner}}?ownerId={{viewOwner}}{{/if}}" hx-boost="false" class="flex flex-wrap gap-2">
+      <label class="flex-1">更新洗涤状态<select name="laundryStatus" class="select select-bordered w-full"><option value="clean" {{#ifEquals garment.laundryStatus 'clean'}}selected{{/ifEquals}}>干净</option><option value="dirty" {{#ifEquals garment.laundryStatus 'dirty'}}selected{{/ifEquals}}>待洗</option><option value="washing" {{#ifEquals garment.laundryStatus 'washing'}}selected{{/ifEquals}}>清洗中</option><option value="drying" {{#ifEquals garment.laundryStatus 'drying'}}selected{{/ifEquals}}>晾晒中</option></select></label>
+      <button class="btn btn-primary self-end" type="submit">更新状态</button>
+    </form>{{/if}}
+  </div></div>
   <div class="card bg-base-100 shadow-sm mb-4">
     <div class="card-body gap-3">
       <div class="flex justify-between">
