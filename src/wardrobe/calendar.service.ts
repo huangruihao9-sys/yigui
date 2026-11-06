@@ -113,7 +113,7 @@ export class CalendarService {
     const plannedBy = dto.plannedBy ?? 'me';
     validatePerson(wearer);
     validatePerson(plannedBy);
-    // SQLite serializes these transactions on its single writer connection.
+    // shortcut: one SQLite writer serializes reservations; add database reservation constraints before supporting multiple instances.
     return this.calendarRepository
       .getEntityManager()
       .transactional(async (em) => {

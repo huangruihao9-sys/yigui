@@ -10,6 +10,12 @@
 
   <a href="/calendar/together" class="btn btn-outline btn-sm mb-4">明日双人穿搭</a>
   <form method="get" action="/wardrobe" class="flex flex-wrap gap-2 mb-4" hx-boost="false">
+    <input type="hidden" name="keyword" value="{{search.keyword}}">
+    <input type="hidden" name="category" value="{{search.category}}">
+    <input type="hidden" name="color" value="{{search.color}}">
+    <input type="hidden" name="size" value="{{search.size}}">
+    <input type="hidden" name="archived" value="{{search.archived}}">
+    {{#if viewOwner}}<input type="hidden" name="ownerId" value="{{viewOwner}}">{{/if}}
     <label>洗涤状态<select name="laundryStatus" class="select select-bordered select-sm"><option value="">全部状态</option><option value="clean" {{#ifEquals search.laundryStatus 'clean'}}selected{{/ifEquals}}>干净</option><option value="dirty" {{#ifEquals search.laundryStatus 'dirty'}}selected{{/ifEquals}}>待洗</option><option value="washing" {{#ifEquals search.laundryStatus 'washing'}}selected{{/ifEquals}}>清洗中</option><option value="drying" {{#ifEquals search.laundryStatus 'drying'}}selected{{/ifEquals}}>晾晒中</option></select></label>
     <label>可穿者<select name="wearer" class="select select-bordered select-sm"><option value="">两人所有衣物</option><option value="me" {{#ifEquals search.wearer 'me'}}selected{{/ifEquals}}>我可以穿</option><option value="partner" {{#ifEquals search.wearer 'partner'}}selected{{/ifEquals}}>女朋友可以穿</option></select></label>
     <button class="btn btn-sm self-end" type="submit">筛选</button>
@@ -77,25 +83,25 @@
     </button>
 
     {{#if search.category}}
-    <a href="/wardrobe?keyword={{search.keyword}}&color={{colorLabel search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&color={{uri search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}&laundryStatus={{uri search.laundryStatus}}&wearer={{uri search.wearer}}"
       class="badge badge-primary badge-sm gap-1 cursor-pointer capitalize no-underline">
-      {{search.category}} &times;
+      {{garmentCategory search.category}} &times;
     </a>
     {{/if}}
     {{#if search.color}}
-    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}&laundryStatus={{uri search.laundryStatus}}&wearer={{uri search.wearer}}"
       class="badge badge-secondary badge-sm gap-1 cursor-pointer capitalize no-underline">
       {{colorLabel search.color}} &times;
     </a>
     {{/if}}
     {{#if search.size}}
-    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{colorLabel search.color}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{uri search.color}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}&laundryStatus={{uri search.laundryStatus}}&wearer={{uri search.wearer}}"
       class="badge badge-accent badge-sm gap-1 cursor-pointer no-underline">
       {{search.size}} &times;
     </a>
     {{/if}}
     {{#if search.archived}}
-    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{colorLabel search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}"
+    <a href="/wardrobe?keyword={{search.keyword}}&category={{search.category}}&color={{uri search.color}}&size={{search.size}}{{#if viewOwner}}&ownerId={{viewOwner}}{{/if}}&laundryStatus={{uri search.laundryStatus}}&wearer={{uri search.wearer}}"
       class="badge badge-warning badge-sm gap-1 cursor-pointer no-underline">
       {{t 'lang.ARCHIVED'}} &times;
     </a>
@@ -104,8 +110,10 @@
 
   {{!-- Search input row --}}
   <form method="get" action="/wardrobe" id="search-form" class="flex gap-2">
+    <input type="hidden" name="laundryStatus" value="{{search.laundryStatus}}">
+    <input type="hidden" name="wearer" value="{{search.wearer}}">
     <input type="hidden" name="category" id="active-category" value="{{search.category}}">
-    <input type="hidden" name="color" id="active-color" value="{{colorLabel search.color}}">
+    <input type="hidden" name="color" id="active-color" value="{{search.color}}">
     <input type="hidden" name="size" id="active-size" value="{{search.size}}">
     <input type="hidden" name="archived" id="active-archived" value="{{search.archived}}">
     {{#if viewOwner}}<input type="hidden" name="ownerId" value="{{viewOwner}}">{{/if}}
@@ -229,7 +237,7 @@
     </div>
   </div>
   <form method="dialog" class="modal-backdrop">
-    <button>close</button>
+    <button>关闭</button>
   </form>
 </dialog>
 

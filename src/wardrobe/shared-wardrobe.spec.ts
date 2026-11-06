@@ -1,6 +1,8 @@
 import { MikroORM } from '@mikro-orm/core';
 import { BetterSqliteDriver } from '@mikro-orm/better-sqlite';
 import { join } from 'path';
+import { readFileSync } from 'fs';
+import hbs from 'hbs';
 import { Garment } from '../dal/entity/garment.entity';
 import { Outfit } from '../dal/entity/outfit.entity';
 import { OutfitCalendar } from '../dal/entity/outfit-calendar.entity';
@@ -93,6 +95,85 @@ describe('shared wardrobe reservations (real SQLite)', () => {
   it('accepts the all-status filter submitted by the browser', async () => {
     expect(
       await garments.findAll(undefined, { laundryStatus: '', wearer: '' }),
+    ).toHaveLength(1);
+  });
+
+  it('keeps an existing outfit editable after saving a Chinese category label', async () => {
+    await garments.update(shirt.id, { category: '上衣', notes: '仅改备注' });
+    const saved = await outfits.findOne(first.id);
+    const i18n = { t: (key: string) => key } as any;
+    const rows = outfits.buildCategoryRows(
+      await garments.findAll(),
+      [shirt.id],
+      i18n,
+      saved.slots,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].garmentId).toBe(shirt.id);
+    expect((await garments.findOne(shirt.id)).category).toBe('tops');
+  });
+
+  it.each(['自定义礼服', '__proto__'])(
+    'preserves custom category %s as text',
+    async (category) => {
+      expect(await garments.create({ name: '礼服', category })).toMatchObject({
+        category,
+      });
+    },
+  );
+
+  it('keeps the stored color when a translated filter form is searched again', async () => {
+    await garments.update(shirt.id, {
+      color: 'black',
+      laundryStatus: 'dirty',
+      wearableBy: 'partner',
+    });
+    await garments.create({
+      name: '干净衬衫',
+      category: 'tops',
+      color: 'black',
+    });
+    await garments.create({
+      name: '另一件衬衫',
+      category: 'tops',
+      color: 'black',
+      laundryStatus: 'dirty',
+      wearableBy: 'me',
+    });
+    const handlebars = hbs.create();
+    handlebars.registerPartial('navbar', '');
+    handlebars.registerPartial('dock', '');
+    handlebars.registerHelper('uri', (value: string) =>
+      encodeURIComponent(value ?? ''),
+    );
+    handlebars.registerHelper('t', (key: string) => key);
+    handlebars.registerHelper('colorLabel', (value: string) =>
+      value === 'black' ? '黑色' : value,
+    );
+    handlebars.registerHelper('garmentCategory', (value: string) => value);
+    handlebars.registerHelper('laundryLabel', (value: string) => value);
+    handlebars.registerHelper('personLabel', (value: string) => value);
+    handlebars.registerHelper('ifEquals', function (a, b, options) {
+      return a === b ? options.fn(this) : options.inverse(this);
+    });
+    const html = handlebars.compile(
+      readFileSync(join(__dirname, '../../views/wardrobe/index.hbs'), 'utf8'),
+    )({
+      garments: await garments.findAll(undefined, { color: 'black' } as any),
+      search: { color: 'black', laundryStatus: 'dirty', wearer: 'partner' },
+      canEdit: true,
+    });
+    const submittedColor = html.match(/id="active-color" value="([^"]*)"/)?.[1];
+    expect(submittedColor).toBeDefined();
+    expect(
+      await garments.findAll(undefined, {
+        color: submittedColor,
+        keyword: '衬衫',
+        laundryStatus: html.match(
+          /<input[^>]*name="laundryStatus"[^>]*value="([^"]*)"/,
+        )?.[1],
+        wearer: html.match(/<input[^>]*name="wearer"[^>]*value="([^"]*)"/)?.[1],
+      } as any),
     ).toHaveLength(1);
   });
 

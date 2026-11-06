@@ -2,6 +2,7 @@ import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { randomUUID } from 'node:crypto';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -146,7 +147,7 @@ export class GarmentService {
 
     const garment = this.garmentRepository.create({
       name: dto.name,
-      category: dto.category,
+      category: this.normalizeCategory(dto.category),
       brand: dto.brand,
       color: dto.color,
       size: this.normalizeSize(dto.size),
@@ -209,7 +210,7 @@ export class GarmentService {
 
     const garment = this.garmentRepository.create({
       name: dto.name,
-      category: dto.category,
+      category: this.normalizeCategory(dto.category),
       brand: dto.brand,
       color: dto.color as any,
       size: this.normalizeSize(dto.size),
@@ -318,7 +319,8 @@ export class GarmentService {
     if (dto.primaryOwner !== undefined) garment.primaryOwner = dto.primaryOwner;
     if (dto.wearableBy !== undefined) garment.wearableBy = dto.wearableBy;
     garment.name = dto.name ?? garment.name;
-    garment.category = dto.category ?? garment.category;
+    if (dto.category !== undefined)
+      garment.category = this.normalizeCategory(dto.category, garment.category);
     if ('brand' in dto) garment.brand = dto.brand;
     if ('color' in dto) garment.color = dto.color;
     if ('size' in dto) garment.size = this.normalizeSize(dto.size);
@@ -379,6 +381,24 @@ export class GarmentService {
     garment.archived = !garment.archived;
     await this.garmentRepository.getEntityManager().flush();
     return garment;
+  }
+
+  private normalizeCategory(input: string, previous?: string): string {
+    if (typeof input !== 'string' || !input.trim())
+      throw new BadRequestException('请填写衣物分类');
+    const category = input.trim();
+    if (category === previous) return category;
+    const aliases: Record<string, GarmentCategory> = {
+      配饰: GarmentCategory.ACCESSORIES,
+      包袋: GarmentCategory.BAGS,
+      外套: GarmentCategory.OUTERWEAR,
+      连衣裙: GarmentCategory.DRESSES,
+      上衣: GarmentCategory.TOPS,
+      下装: GarmentCategory.BOTTOMS,
+      鞋: GarmentCategory.FOOTWEAR,
+      其他: GarmentCategory.OTHER,
+    };
+    return Object.hasOwn(aliases, category) ? aliases[category] : category;
   }
 
   private normalizeSize(input?: string): string | undefined {

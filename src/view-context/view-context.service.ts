@@ -23,7 +23,7 @@ export class ViewContextService {
     const path = req.url.split('?')[0];
     const protocol =
       (req.headers['x-forwarded-proto'] as string) ?? req.protocol;
-    const host = (req.headers['x-forwarded-host'] as string) ?? req.hostname;
+    const host = (req.headers['x-forwarded-host'] as string) ?? req.host;
     const canonicalUrl = `${protocol}://${host}${path}`;
     const ogLocaleMap: Record<string, string> = {
       zh: 'zh_CN',
@@ -36,8 +36,8 @@ export class ViewContextService {
       da: 'da_DK',
     };
 
-    const siteUrl = this.configService.get<string>('SITE_URL') ?? host;
     const baseUrl = `${protocol}://${host}`;
+    const siteUrl = baseUrl;
     const appName = this.configService.get<string>('APP_NAME');
     const appDescription = '两个人的共享衣橱：记录衣服、洗涤状态和每天的穿搭。';
     const ogImage = `${baseUrl}/assets/lazztech_icon.png`;
